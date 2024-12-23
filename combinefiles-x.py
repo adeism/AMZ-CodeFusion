@@ -17,21 +17,21 @@ class FileCombiner:
     def __init__(self):
         self.source_dir = "."
         self.output_file = "combined_files.txt"
-        self.extensions: List[str] = []
-        self.exclude_folders: List[str] = ['.git']
-        self.exclude_patterns: List[str] = []
-        self.include_line_numbers: bool = False
-        self.include_timestamp: bool = False
-        self.include_file_size: bool = False
-        self.add_syntax_highlight: bool = False
-        self.max_file_size_mb: Optional[float] = None
-        self.create_zip_archive: bool = False
-        self.exclude_images: bool = False
-        self.exclude_executable: bool = False
-        self.exclude_temp_and_backup_files: bool = False
-        self.exclude_hidden_files: bool = False
-        self.num_worker_threads: int = 4
-        self.lock = threading.Lock()
+        self.extensions: List[str] = []  # List of file extensions to include
+        self.exclude_folders: List[str] = ['.git']  # List of folders to exclude
+        self.exclude_patterns: List[str] = []  # List of regex patterns to exclude from file paths
+        self.include_line_numbers: bool = False  # Whether to include line numbers in the output
+        self.include_timestamp: bool = False  # Whether to include file modification timestamp
+        self.include_file_size: bool = False  # Whether to include file size
+        self.add_syntax_highlight: bool = False  # Whether to add basic syntax highlighting (requires manual language spec)
+        self.max_file_size_mb: Optional[float] = None  # Maximum file size (MB) to include
+        self.create_zip_archive: bool = False  # Whether to create a zip archive of the output
+        self.exclude_images: bool = False  # Whether to exclude common image files
+        self.exclude_executable: bool = False  # Whether to exclude executable files
+        self.exclude_temp_and_backup_files: bool = False  # Whether to exclude temp and backup files
+        self.exclude_hidden_files: bool = False  # Whether to exclude hidden files
+        self.num_worker_threads: int = 4  # Number of threads to use for processing
+        self.lock = threading.Lock()  # Lock for thread-safe file writing
 
         self._image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff']
         self._temp_backup_extensions = ['.tmp', '.temp', '.bak', '~']
@@ -226,6 +226,7 @@ class FileCombiner:
             print(f"An error occurred: {e}")
 
     def _create_zip_archive(self):
+        """Creates a zip archive of the output file."""
         zip_filename = self.output_file.replace('.txt', '.zip')
         try:
             with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
