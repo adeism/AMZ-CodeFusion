@@ -1,10 +1,5 @@
 # 📑 Text-Code Combiner
 
-[![Python](https://img.shields.io/badge/Python-3.6%2B-blue)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/text-code-combiner/releases)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/yourusername/text-code-combiner/pulls)
-
 A powerful Python utility that intelligently combines source code and text files into a single well-organized document. Perfect for code documentation, project analysis, and source code archiving.
 
 ## ✨ Key Features
@@ -118,17 +113,3 @@ python combine.py
 - 📝 Text: `.txt`, `.md`, `.csv`
 - 📄 Documents: `.xml`, `.json`, `.yaml`
 - ⚙️ Config: `.ini`, `.conf`, `.env`
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-1. 🍴 Fork the repository
-2. 🌿 Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. 📤 Push to branch (`git push origin feature/AmazingFeature`)
-5. 🔄 Open a Pull Request
-
-## 📝 License
-
-Released under MIT License. See [LICENSE](LICENSE) for details.
