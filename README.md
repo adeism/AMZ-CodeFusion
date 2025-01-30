@@ -40,10 +40,10 @@ The smart tool designed for **human-in-the-loop code documentation**, **source c
 
 ### Usage
 
-1. **Download the Script:** Download or clone the `file_combiner.py` script (now known as AMZ-CodeFusion) to your local machine.
+1. **Download the Script:** [Download (windows exe file)](https://github.com/adeism/AMZ-CodeFusion/releases/download/AMZ-CodeFusion-v1/CodeFusion.zip) or clone the `CodeFusion.py` script to your local machine.
 2. **Run the Script:** Open your terminal or command prompt, navigate to the script's directory, and execute:
    ```bash
-   python file_combiner.py
+   python CodeFusion.py
    ```
 3. **Configure for Code Fusion:** The AMZ-CodeFusion GUI will launch.
 
