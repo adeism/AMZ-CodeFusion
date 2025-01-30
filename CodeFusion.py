@@ -14,26 +14,32 @@ import webbrowser  # For opening the output file
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-class FileCombiner:
-    """Combines multiple files into a single output file, optimized for RAG chatbot."""
+class AMZCodeFusion:
+    """
+    AMZ-CodeFusion: Human-in-the-Loop Code Documentation & Source Code Dataset Generator for RAG.
+
+    Combines multiple code files into a single output file, optimized for creating
+    source code datasets, documentation, and archives for RAG (Retrieval-Augmented Generation) applications.
+    Facilitates human-in-the-loop workflows for code understanding and documentation enhancement.
+    """
 
     def __init__(self):
-        # Default settings - Optimized for RAG & character count
+        # Default settings - Optimized for RAG & character count, code dataset focus
         self.source_dir = "."
-        self.output_file = "rag_output.txt" # Default, akan di-update saat pilih folder
-        self.extensions = []  # Empty list means all extensions are included
-        self.exclude_folders = ['.git']
+        self.output_file = "codefusion_output.txt" # Default output file for CodeFusion
+        self.extensions = []  # Empty list means all extensions are included (for code files)
+        self.exclude_folders = ['.git'] # Default exclude for code repos
         self.exclude_patterns = []
-        self.include_line_numbers = False # Default off for RAG
-        self.include_timestamp = False # Default off for RAG
-        self.include_file_size = False # Default off for RAG
+        self.include_line_numbers = False # Default off for cleaner RAG datasets
+        self.include_timestamp = False # Default off for cleaner RAG datasets
+        self.include_file_size = False # Default off for cleaner RAG datasets
         self.add_syntax_highlight = False  # Requires manual language specification in output, default off
         self.max_file_size_mb = None
         self.create_zip_archive = False
-        self.exclude_images = True  # Set to True as per your request
-        self.exclude_executable = True  # Set to True
-        self.exclude_temp_and_backup_files = True  # Set to True
-        self.exclude_hidden_files = True  # Set to True
+        self.exclude_images = True  # Default True for code datasets
+        self.exclude_executable = True  # Default True for code datasets
+        self.exclude_temp_and_backup_files = True  # Default True for code datasets
+        self.exclude_hidden_files = True  # Default True for code datasets
         self.num_worker_threads = 4
         self.lock = threading.Lock()
         self.skipped_folders = [] # To store skipped folder paths
@@ -41,31 +47,33 @@ class FileCombiner:
         self.skipped_lists_lock = threading.Lock() # Lock for skipped_folders and skipped_files
         self.include_skipped_folders_detail = True # Default True to include detail
         self.include_skipped_files_detail = True   # Default True to include detail
-        self.exclude_comments = False # New feature: Exclude comments /* ... */
+        self.exclude_comments = False # New feature: Exclude comments /* ... */ for cleaner datasets
         self.root = None # Initialize root to None for safety
 
     def get_user_preferences(self):
-        """Opens a GUI window to get user preferences for file combination."""
+        """
+        Opens a GUI window to get user preferences for code file combination and dataset generation using AMZ-CodeFusion.
+        """
         if self.root: # Check if root already exists to prevent multiple windows
             return
 
         self.root = tk.Tk()
-        self.root.title("File Combiner Configuration (RAG Optimized)") # Updated title
+        self.root.title("AMZ-CodeFusion Configuration") # Updated title
 
         # Source directory
-        tk.Label(self.root, text="Source Directory:").grid(row=0, column=0, sticky='e')
+        tk.Label(self.root, text="Source Code Directory:").grid(row=0, column=0, sticky='e')
         self.source_dir_var = tk.StringVar(value=self.source_dir)
         tk.Entry(self.root, textvariable=self.source_dir_var, width=50).grid(row=0, column=1)
         tk.Button(self.root, text="Browse...", command=self.browse_source_dir).grid(row=0, column=2)
 
         # Output file
-        tk.Label(self.root, text="Output File Name:").grid(row=1, column=0, sticky='e')
+        tk.Label(self.root, text="Output Dataset File Name:").grid(row=1, column=0, sticky='e')
         self.output_file_var = tk.StringVar(value=self.output_file)
         tk.Entry(self.root, textvariable=self.output_file_var, width=50).grid(row=1, column=1)
         tk.Button(self.root, text="Browse...", command=self.browse_output_file).grid(row=1, column=2)
 
         # File extensions
-        tk.Label(self.root, text="File Extensions (comma-separated):").grid(row=2, column=0, sticky='e') # Shortened label
+        tk.Label(self.root, text="Code File Extensions (comma-separated):").grid(row=2, column=0, sticky='e') # Shortened label
         self.extensions_var = tk.StringVar()
         tk.Entry(self.root, textvariable=self.extensions_var, width=50).grid(row=2, column=1, columnspan=2)
 
@@ -125,20 +133,20 @@ class FileCombiner:
         self.progress_label.grid(row=12, column=0, columnspan=3)
 
         # Buttons
-        tk.Button(self.root, text="Start Combine", command=self.on_start).grid(row=13, column=1, pady=10) # Shortened button label
+        tk.Button(self.root, text="Start Fusion", command=self.on_start).grid(row=13, column=1, pady=10) # Shortened button label, "Fusion" for AMZ-CodeFusion
         tk.Button(self.root, text="Cancel", command=self.on_cancel).grid(row=13, column=2) # Use a dedicated cancel function
 
         self.root.mainloop()
 
 
     def _write_summary(self):
-        """Writes a concise summary header to the output file."""
+        """Writes a concise summary header to the output dataset/archive file."""
         try:
             with open(self.output_file, 'w', encoding='utf-8') as outfile:
-                outfile.write(f"# Combined Files - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n") # Simplified header
-                outfile.write(f"Source: {os.path.abspath(self.source_dir)}\n") # Simplified source info
+                outfile.write(f"# AMZ-CodeFusion Output - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n") # Updated header for CodeFusion
+                outfile.write(f"Source Code Directory: {os.path.abspath(self.source_dir)}\n") # Updated source info label
                 if self.extensions:
-                    outfile.write(f"Extensions: {', '.join(self.extensions)}\n")
+                    outfile.write(f"Included Code Extensions: {', '.join(self.extensions)}\n") # Updated label
                 if self.exclude_folders != ['.git']: # Only show if not default
                     outfile.write(f"Excluded Folders: {', '.join(self.exclude_folders)}\n")
                 if self.exclude_patterns:
@@ -149,22 +157,22 @@ class FileCombiner:
             messagebox.showerror("File Error", f"Could not write summary to output file: {e}")
 
     def _write_file_header(self, outfile, filepath):
-        """Writes a simplified file header: just file path."""
+        """Writes a simplified file header: just file path, for code dataset readability."""
         outfile.write(f"\n## File: {os.path.relpath(filepath, self.source_dir)}\n") # Simplified file header, markdown style for readability
 
 
     def _write_combination_summary(self, files_processed, total_size):
-        """Writes a concise combination summary."""
+        """Writes a concise combination summary for the code dataset/archive."""
         try:
             with open(self.output_file, 'a', encoding='utf-8') as outfile:
-                outfile.write(f"\n---\nFiles Processed: {files_processed}\n") # Simplified summary
-                outfile.write(f"Total Size: {total_size / 1024 / 1024:.2f} MB\n")
+                outfile.write(f"\n---\nCode Files Processed: {files_processed}\n") # Updated summary label
+                outfile.write(f"Total Dataset Size: {total_size / 1024 / 1024:.2f} MB\n") # Updated label
 
                 if self.include_skipped_folders_detail: # Conditionally include detailed skipped folders list
                     if self.skipped_folders:
                         outfile.write("\nSkipped Folders:\n")
                         for folder in self.skipped_folders:
-                            outfile.write(f"- {os.path.relpath(folder, self.source_dir)}\n") # Gunakan path relatif
+                            outfile.write(f"- {os.path.relpath(folder, self.source_dir)}\n") # Use relative path
                 elif self.skipped_folders: # Show just count if detailed list is off, but something was skipped
                     outfile.write(f"\nSkipped Folders Count: {len(self.skipped_folders)}\n") # Just show counts
 
@@ -172,7 +180,7 @@ class FileCombiner:
                     if self.skipped_files:
                         outfile.write("\nSkipped Files:\n")
                         for file in self.skipped_files:
-                            outfile.write(f"- {os.path.relpath(file, self.source_dir)}\n") # Gunakan path relatif
+                            outfile.write(f"- {os.path.relpath(file, self.source_dir)}\n") # Use relative path
                 elif self.skipped_files: # Show just count if detailed list is off, but something was skipped
                     outfile.write(f"Skipped Files Count: {len(self.skipped_files)}\n")
         except Exception as e:
@@ -181,26 +189,26 @@ class FileCombiner:
 
 
     def browse_source_dir(self):
-        """Opens a dialog to select the source directory and suggests output filename."""
-        directory = filedialog.askdirectory(initialdir=self.source_dir)
+        """Opens a dialog to select the source code directory and suggests output dataset filename."""
+        directory = filedialog.askdirectory(initialdir=self.source_dir, title="Select Source Code Directory") # Updated title
         if directory:
             self.source_dir_var.set(directory)
             # Suggest output filename based on source directory name
             source_folder_name = os.path.basename(directory)
-            suggested_output_file = f"rag_output_{source_folder_name}.txt"
+            suggested_output_file = f"codefusion_output_{source_folder_name}.txt" # Updated suggested filename
             self.output_file_var.set(suggested_output_file) # Update output_file_var
 
     def browse_output_file(self):
-        """Opens a dialog to select the output file."""
-        file = filedialog.asksaveasfilename(defaultextension=".txt", initialfile=self.output_file)
+        """Opens a dialog to select the output dataset file."""
+        file = filedialog.asksaveasfilename(defaultextension=".txt", initialfile=self.output_file, title="Save Output Dataset File") # Updated title
         if file:
             self.output_file_var.set(file)
 
     def on_start(self):
-        """Starts the file combination process."""
+        """Starts the code file combination and dataset generation process in AMZ-CodeFusion."""
         # Retrieve values from GUI
         self.source_dir = self.source_dir_var.get() or "."
-        self.output_file = self.output_file_var.get() or "rag_output.txt" # Default output file name updated
+        self.output_file = self.output_file_var.get() or "codefusion_output.txt" # Default output file name updated
         self.extensions = [ext.strip() for ext in self.extensions_var.get().split(',')] if self.extensions_var.get() else []
         self.exclude_folders = [folder.strip() for folder in self.exclude_folders_var.get().split(',')] if self.exclude_folders_var.get() else ['.git']
         self.exclude_patterns = [pattern.strip() for pattern in self.exclude_patterns_var.get().split(',')] if self.exclude_patterns_var.get() else []
@@ -242,11 +250,11 @@ class FileCombiner:
             return
 
         if not os.path.isdir(self.source_dir): # Validate source directory
-            messagebox.showerror("Invalid Input", "Source directory is not valid.")
+            messagebox.showerror("Invalid Input", "Source code directory is not valid.") # Updated message
             return
 
         if not self.output_file: # Validate output file name
-            messagebox.showerror("Invalid Input", "Output file name cannot be empty.")
+            messagebox.showerror("Invalid Input", "Output dataset file name cannot be empty.") # Updated message
             return
 
         # Disable the GUI elements while processing
@@ -261,13 +269,13 @@ class FileCombiner:
         threading.Thread(target=self.combine_files).start()
 
     def on_cancel(self):
-        """Handles cancel button click - destroys the GUI window."""
+        """Handles cancel button click - destroys the GUI window for AMZ-CodeFusion."""
         if self.root:
             self.root.destroy()
             self.root = None # Reset root
 
     def toggle_gui_elements(self, disabled=False):
-        """Enables or disables GUI elements."""
+        """Enables or disables GUI elements of AMZ-CodeFusion."""
         state = 'disabled' if disabled else 'normal'
         if self.root: # Check if root exists before accessing its children
             for child in self.root.winfo_children():
@@ -298,13 +306,13 @@ class FileCombiner:
                 return False
 
     def should_process_file(self, filepath: str) -> bool:
-        """Determines whether a file should be included based on user settings.
+        """Determines whether a code file should be included in the dataset based on user settings.
 
-        Penting untuk diperhatikan:
-        - Pola regex yang ditentukan oleh pengguna dicocokkan di *mana saja* dalam path file (menggunakan re.search).
-          Untuk mencocokkan dari awal path, pola regex harus dimulai dengan '^'.
-        - Deteksi file tersembunyi menggunakan ctypes hanya berlaku untuk Windows. Di platform lain,
-          deteksi file tersembunyi hanya berdasarkan nama file yang dimulai dengan '.'.
+        Important notes:
+        - Regex patterns specified by the user are matched *anywhere* in the file path (using re.search).
+          To match from the beginning of the path, the regex pattern must start with '^'.
+        - Hidden file detection using ctypes is only applicable to Windows. On other platforms,
+          hidden file detection is based solely on the filename starting with '.'.
         """
         # Check file extension
         if self.extensions and not any(filepath.lower().endswith(ext.lower()) for ext in self.extensions): # Case-insensitive extension check
@@ -373,11 +381,11 @@ class FileCombiner:
         return True
 
     def _remove_comments(self, text):
-        """Removes /* ... */ style comments from text."""
+        """Removes /* ... */ style comments from text for cleaner code datasets."""
         return re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
 
     def _process_file(self, filepath: str):
-        """Processes and writes a single file to the output."""
+        """Processes a single code file: reads content, applies filters, and writes to the output dataset."""
         try:
             with open(filepath, 'r', encoding='utf-8') as infile:
                 content = infile.read()
@@ -409,11 +417,13 @@ class FileCombiner:
 
 
     def combine_files(self):
-        """Combines the files according to the user preferences.
+        """
+        Combines code files from the source directory into a single output dataset/archive file
+        according to user preferences, optimized for RAG applications.
 
-        Penting untuk diperhatikan:
-        - Program memerlukan izin baca untuk semua file di direktori sumber dan izin tulis
-          untuk membuat file output dan zip archive. Pastikan izin yang sesuai diberikan.
+        Important notes:
+        - The program requires read permissions for all files in the source directory and write permissions
+          to create the output file and zip archive. Ensure appropriate permissions are granted.
         """
         try:
             with self.skipped_lists_lock: # Clear skipped lists at the start, protect with lock just in case.
@@ -447,7 +457,7 @@ class FileCombiner:
 
             total_files = len(file_paths)
             if total_files == 0:
-                messagebox.showinfo("Information", "No files found to process with the current settings.")
+                messagebox.showinfo("Information", "No code files found to process with the current settings.") # Updated message
                 logging.info("No files found to process.")
                 self.toggle_gui_elements(disabled=False) # Re-enable GUI even if no files
                 return
@@ -462,7 +472,7 @@ class FileCombiner:
                     total_size += result[1]
                     # Update progress label - use file index for more accurate progress
                     progress_percent = (index / file_count) * 100
-                    self.progress_label.config(text=f"Processed {index}/{file_count} files ({progress_percent:.0f}%) ...")
+                    self.progress_label.config(text=f"Processed {index}/{file_count} files ({progress_percent:.0f}%) ...") # Updated progress text
                     self.root.update_idletasks()
 
             self._write_combination_summary(files_processed, total_size)
@@ -470,27 +480,27 @@ class FileCombiner:
             if self.create_zip_archive:
                 self._create_zip_archive()
 
-            logging.info(f"Combined {files_processed} files into {self.output_file}")
-            logging.info(f"Total size: {total_size / 1024 / 1024:.2f} MB")
+            logging.info(f"Combined {files_processed} code files into {self.output_file}") # Updated log message
+            logging.info(f"Total dataset size: {total_size / 1024 / 1024:.2f} MB") # Updated log message
 
-            print(f"\nCombined {files_processed} files into {self.output_file}")
-            print(f"Total size: {total_size / 1024 / 1024:.2f} MB")
+            print(f"\nCombined {files_processed} code files into {self.output_file}") # Updated print message
+            print(f"Total dataset size: {total_size / 1024 / 1024:.2f} MB") # Updated print message
 
-            messagebox.showinfo("Success", f"Combined {files_processed} files into {self.output_file}\nTotal size: {total_size / 1024 / 1024:.2f} MB")
+            messagebox.showinfo("Success", f"Combined {files_processed} code files into {self.output_file}\nTotal dataset size: {total_size / 1024 / 1024:.2f} MB") # Updated message
 
             # Open the output file after processing
             self.open_output_file()
 
         except Exception as e:
-            logging.error(f"An error occurred during file combination: {e}") # More specific error log
-            print(f"An error occurred during file combination: {e}")
-            messagebox.showerror("Error", f"An error occurred during file combination: {e}") # More specific error message
+            logging.error(f"An error occurred during code file combination: {e}") # More specific error log
+            print(f"An error occurred during code file combination: {e}") # More specific error print
+            messagebox.showerror("Error", f"An error occurred during code file combination: {e}") # More specific error message
         finally:
             # Re-enable the GUI elements after processing
             self.toggle_gui_elements(disabled=False)
 
     def _create_zip_archive(self):
-        """Creates a zip archive of the output file."""
+        """Creates a zip archive of the output dataset file."""
         zip_filename = self.output_file.replace('.txt', '.zip')
         try:
             with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -505,7 +515,7 @@ class FileCombiner:
             messagebox.showerror("Error", f"Error creating zip archive: {e}")
 
     def open_output_file(self):
-        """Opens the output file using the default system application."""
+        """Opens the output dataset file using the default system application."""
         try:
             # Attempt to open the output file with the default application
             webbrowser.open(self.output_file)
@@ -514,8 +524,8 @@ class FileCombiner:
             messagebox.showerror("Error", f"Could not open the output file: {e}")
 
 def main():
-    combiner = FileCombiner()
-    combiner.get_user_preferences()
+    code_fusion = AMZCodeFusion()
+    code_fusion.get_user_preferences()
 
 if __name__ == "__main__":
     main()
