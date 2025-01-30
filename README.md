@@ -1,10 +1,5 @@
 # 🤖 AMZ-CodeFusion 🚀
-
-**Human-in-the-Loop Code Documentation & Source Code Dataset Generator for RAG!**
-
-## 🌟 Introduction
-
-the smart tool designed for **human-in-the-loop code documentation**, **source code dataset creation**, and efficient **source code archiving**, all tailored for **RAG (Retrieval-Augmented Generation) applications**.  Are you looking to build robust RAG-based code assistants or archive your projects for future reference? AMZ-CodeFusion simplifies the process of consolidating scattered code files into a structured, documented dataset, ready to fuel your AI models and knowledge bases.
+The smart tool designed for **human-in-the-loop code documentation**, **source code dataset creation**, and efficient **source code archiving**, all tailored for **RAG (Retrieval-Augmented Generation) applications**.  Are you looking to build robust RAG-based code assistants or archive your projects for future reference? AMZ-CodeFusion simplifies the process of consolidating scattered code files into a structured, documented dataset, ready to fuel your AI models and knowledge bases.
 
 ## ✨ Key Features for Code Documentation, Datasets & RAG
 
